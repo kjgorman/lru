@@ -3,8 +3,12 @@
   'use strict';
 
   function Cache (threshold) {
-    if (!threshold || threshold < 1)
+    function invalid () {
       throw new Error("Cannot build cache with a threshold less than 1")
+    }
+
+    !threshold && invalid()
+    threshold < 1 && invalid()
 
     this.threshold = threshold
     this.cache     = {}   , this.orderLookup = {}
@@ -54,13 +58,14 @@
 
   function updateOrdering (cache, key) {
     var node = cache.orderLookup[key]
-    if(!node) return
+    function updateNode (node) {
+      node === cache.tail && (cache.tail = node.prev)
+      linkAdjacent(node)
 
-    node === cache.tail && (cache.tail = node.prev)
-    linkAdjacent(node)
-
-    node.next = cache.head
-    cache.head = node
+      node.next = cache.head
+      cache.head = node
+    }
+    node && updateNode(node)
   }
 
   function linkAdjacent (node) {

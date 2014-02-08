@@ -3,6 +3,7 @@ var assert = require('assert')
 
 describe('construction', function () {
   it('should violently reject stupid cache sizes', function () {
+    assert.throws(function () { return new Cache() }, Error)
     assert.throws(function () { return new Cache(0) }, Error)
     assert.throws(function () { return new Cache(-1) }, Error)
     assert.doesNotThrow(function () { return new Cache(1) })
