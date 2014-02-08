@@ -1,5 +1,6 @@
 /*jshint asi:true, expr:true */
 -function () {
+  'use strict';
 
   function Cache (threshold) {
     if (!threshold || threshold < 1)
@@ -19,13 +20,13 @@
 
     this.head = node, this.orderLookup[key] = node
 
-    ++this.count > this.threshold && evictOldest.call(this)
+    ++this.count > this.threshold && evictOldest(this)
 
     this.cache[key] = value
   }
 
   Cache.prototype.update = function (key, value) {
-    updateOrdering.call(this, key)
+    updateOrdering(this, key)
     var was = this.cache[key]
     was && (this.cache[key] = value)
     return was
@@ -38,12 +39,12 @@
 
     linkAdjacent(node)
 
-    remove.call(this, key)
+    remove(this, key)
   }
 
   Cache.prototype.get = function (key) {
     var hit = this.cache[key]
-    hit && updateOrdering.call(this, key)
+    hit && updateOrdering(this, key)
     return hit
   }
 
@@ -51,15 +52,15 @@
     (this.afterEvict || (this.afterEvict =[])).push(λ)
   }
 
-  function updateOrdering (key) {
-    var node = this.orderLookup[key]
+  function updateOrdering (cache, key) {
+    var node = cache.orderLookup[key]
     if(!node) return
 
-    node === this.tail && (this.tail = node.prev)
+    node === cache.tail && (cache.tail = node.prev)
     linkAdjacent(node)
 
-    node.next = this.head
-    this.head = node
+    node.next = cache.head
+    cache.head = node
   }
 
   function linkAdjacent (node) {
@@ -67,18 +68,18 @@
     node.next && (node.next.prev = node.prev)
   }
 
-  function evictOldest (key) {
-    var oldestKey = this.tail.key
-    this.tail = this.tail.prev
-    var removed = remove.call(this, oldestKey)
-    this.afterEvict && this.afterEvict.map(function (λ) { λ(removed) })
+  function evictOldest (cache, key) {
+    var oldestKey = cache.tail.key
+    cache.tail = cache.tail.prev
+    var removed = remove(cache, oldestKey)
+    cache.afterEvict && cache.afterEvict.map(function (λ) { λ(removed) })
   }
 
-  function remove (key) {
-    delete this.orderLookup[key]
-    var was = this.cache[key]
-    ;delete this.cache[key]
-    this.count--
+  function remove (cache, key) {
+    delete cache.orderLookup[key]
+    var was = cache.cache[key]
+    ;delete cache.cache[key]
+    cache.count--
     return was
   }
 
