@@ -47,6 +47,10 @@
     return hit
   }
 
+  Cache.prototype.onEvict = function (λ) {
+    (this.afterEvict || (this.afterEvict =[])).push(λ)
+  }
+
   function updateOrdering (key) {
     var node = this.orderLookup[key]
     if(!node) return
@@ -66,13 +70,16 @@
   function evictOldest (key) {
     var oldestKey = this.tail.key
     this.tail = this.tail.prev
-    remove.call(this, oldestKey)
+    var removed = remove.call(this, oldestKey)
+    this.afterEvict && this.afterEvict.map(function (λ) { λ(removed) })
   }
 
   function remove (key) {
     delete this.orderLookup[key]
+    var was = this.cache[key]
     ;delete this.cache[key]
     this.count--
+    return was
   }
 
   function Node (key) {

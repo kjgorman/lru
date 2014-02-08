@@ -108,3 +108,34 @@ describe('get', function () {
     assert.equal(null, cache.get('c'))
   })
 })
+
+describe('onEvict', function () {
+  it('should fire eviction events', function () {
+    var cache    = new Cache(1)
+      , sentinel = false
+    cache.onEvict(function () { sentinel = true })
+    cache.insert('a', 'b')
+    cache.insert('c', 'd')
+    assert.equal(true, sentinel)
+  })
+
+  it('should execute evictions events in order of registration', function () {
+    var cache    = new Cache(1)
+      , expected = [1,2]
+      , actual   = []
+    cache.onEvict(function () { actual.push(1) })
+    cache.onEvict(function () { actual.push(2) })
+    cache.insert('a', 'b')
+    cache.insert('c', 'd')
+    assert.deepEqual(expected, actual)
+  })
+
+  it('should bo only on eviction, and not removal', function () {
+    var cache = new Cache(1)
+      , sentinel = false
+    cache.onEvict(function () { sentinel = true })
+    cache.insert('a', 'b')
+    cache.remove('a')
+    assert.equal(false, sentinel)
+  })
+})
