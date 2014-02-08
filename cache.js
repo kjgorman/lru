@@ -1,3 +1,4 @@
+/*jshint asi:true, expr:true */
 !function () {
 
   function Cache (threshold) {
@@ -10,7 +11,7 @@
 
   Cache.prototype.insert = function (key, value) {
     //push to ordering
-    var node = new Node(key), oldestKey
+    var node = new Node(key)
     node.next = this.head
     this.tail || (this.tail = node)
 
@@ -18,13 +19,8 @@
     this.orderLookup[key] = node
     this.count++
 
-    if(this.count > this.threshold) {
-      oldestKey = this.tail.key
-      this.tail = this.tail.prev
-      delete this.cache[oldestKey]
-      delete this.orderLookup[oldestKey]
-      this.count--
-    }
+    if(this.count > this.threshold)
+      evictOldest.call(this)
 
     this.cache[key] = value
   }
@@ -41,33 +37,41 @@
     if (this.tail === node)
       this.tail = node.prev
 
-    this.linkAdjacent(node)
+    linkAdjacent(node)
 
-    delete orderLookup[key]
-    delete cache[key]
+    ;delete orderLookup[key]
+    ;delete cache[key]
   }
 
   Cache.prototype.get = function (key) {
     var hit = this.cache[key]
-    if (hit) this.updateOrdering(key)
+    if (hit) updateOrdering.call(this, key)
     return hit
   }
 
-  Cache.prototype.updateOrdering = function (key) {
+  function updateOrdering (key) {
     var node = this.orderLookup[key]
 
     if (node === this.tail)
       this.tail = node.prev
 
-    this.linkAdjacent(node)
+    linkAdjacent(node)
 
     node.next = this.head
     this.head = node
   }
 
-  Cache.prototype.linkAdjacent = function (node) {
+  function linkAdjacent (node) {
     node.prev && (node.prev.next = node.next)
     node.next && (node.next.prev = node.prev)
+  }
+
+  function evictOldest (key) {
+      var oldestKey = this.tail.key
+      this.tail = this.tail.prev
+      ;delete this.cache[oldestKey]
+      ;delete this.orderLookup[oldestKey]
+      this.count--
   }
 
   function Node (key) {
