@@ -1,5 +1,5 @@
 /*jshint asi:true, expr:true */
--function () {
+;-function () {
 
   function Cache (threshold) {
     if (threshold < 1)
@@ -35,14 +35,13 @@
   }
 
   Cache.prototype.remove = function (key) {
-    var node = orderLookup[key]
+    var node = this.orderLookup[key]
     this.head === node && (this.head = node.next)
     this.tail === node && (this.tail = node.prev)
 
     linkAdjacent(node)
 
-    ;delete orderLookup[key]
-    ;delete cache[key]
+    remove.call(this, key)
   }
 
   Cache.prototype.get = function (key) {
@@ -68,11 +67,15 @@
   }
 
   function evictOldest (key) {
-      var oldestKey = this.tail.key
-      this.tail = this.tail.prev
-      ;delete this.cache[oldestKey]
-      ;delete this.orderLookup[oldestKey]
-      this.count--
+    var oldestKey = this.tail.key
+    this.tail = this.tail.prev
+    remove.call(this, oldestKey)
+  }
+
+  function remove (key) {
+    ;delete this.orderLookup[key]
+    ;delete this.cache[key]
+    this.count--
   }
 
   function Node (key) {

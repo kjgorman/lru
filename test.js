@@ -70,3 +70,29 @@ describe('update', function () {
     assert.equal(null, cache.get('c'))
   })
 })
+
+describe('remove', function () {
+  it('should decrease cache size', function () {
+    var cache = new Cache(1)
+    cache.insert('a', 'b')
+    assert.equal(1, cache.count)
+    cache.remove('a', 'b')
+    assert.equal(0, cache.count)
+  })
+
+  it('should remove the element', function () {
+    var cache = new Cache(1)
+    cache.insert('a', 'b')
+    assert.equal('b', cache.get('a'))
+    cache.remove('a')
+    assert.equal(null, cache.get('a'))
+  })
+
+  it('should update the tail pointer', function () {
+    var cache = new Cache(10)
+    ;[1,2,3,4,5,6,7,8,9,10].map(function (i) { cache.insert(i, i) })
+    assert.equal(1, cache.tail.key)
+    cache.remove(1)
+    assert.equal(2, cache.tail.key)
+  })
+})
