@@ -1,7 +1,10 @@
 /*jshint asi:true, expr:true */
-!function () {
+-function () {
 
   function Cache (threshold) {
+    if (threshold < 1)
+      throw new Error("Cannot build cache with a threshold less than 1")
+
     this.threshold = threshold
     this.cache = {}
     this.orderLookup = {}
@@ -10,32 +13,31 @@
   }
 
   Cache.prototype.insert = function (key, value) {
-    //push to ordering
     var node = new Node(key)
     node.next = this.head
-    this.tail || (this.tail = node)
+    node.next === null || (node.next.prev = node)
+    this.tail === null && (this.tail = node)
 
     this.head = node
     this.orderLookup[key] = node
     this.count++
 
-    if(this.count > this.threshold)
-      evictOldest.call(this)
+    this.count > this.threshold && evictOldest.call(this)
 
     this.cache[key] = value
   }
 
   Cache.prototype.update = function (key, value) {
-    this.updateOrdering(key)
-    this.cache[key] = value
+    updateOrdering.call(this, key)
+    var was = this.cache[key]
+    was && (this.cache[key] = value)
+    return was
   }
 
   Cache.prototype.remove = function (key) {
     var node = orderLookup[key]
-    if (this.head === node)
-      this.head = node.next
-    if (this.tail === node)
-      this.tail = node.prev
+    this.head === node && (this.head = node.next)
+    this.tail === node && (this.tail = node.prev)
 
     linkAdjacent(node)
 
@@ -45,16 +47,15 @@
 
   Cache.prototype.get = function (key) {
     var hit = this.cache[key]
-    if (hit) updateOrdering.call(this, key)
+    hit && updateOrdering.call(this, key)
     return hit
   }
 
   function updateOrdering (key) {
     var node = this.orderLookup[key]
+    if(!node) return
 
-    if (node === this.tail)
-      this.tail = node.prev
-
+    node === this.tail && (this.tail = node.prev)
     linkAdjacent(node)
 
     node.next = this.head
