@@ -1,15 +1,14 @@
 /*jshint asi:true, expr:true */
-;-function () {
+-function () {
 
   function Cache (threshold) {
-    if (threshold < 1)
+    if (!threshold || threshold < 1)
       throw new Error("Cannot build cache with a threshold less than 1")
 
     this.threshold = threshold
-    this.cache = {}
-    this.orderLookup = {}
-    this.head = null, this.tail = null
-    this.count = 0
+    this.cache     = {}   , this.orderLookup = {}
+    this.head      = null , this.tail        = null
+    this.count     = 0
   }
 
   Cache.prototype.insert = function (key, value) {
@@ -18,11 +17,9 @@
     node.next === null || (node.next.prev = node)
     this.tail === null && (this.tail = node)
 
-    this.head = node
-    this.orderLookup[key] = node
-    this.count++
+    this.head = node, this.orderLookup[key] = node
 
-    this.count > this.threshold && evictOldest.call(this)
+    ++this.count > this.threshold && evictOldest.call(this)
 
     this.cache[key] = value
   }
@@ -73,7 +70,7 @@
   }
 
   function remove (key) {
-    ;delete this.orderLookup[key]
+    delete this.orderLookup[key]
     ;delete this.cache[key]
     this.count--
   }

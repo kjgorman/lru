@@ -96,3 +96,15 @@ describe('remove', function () {
     assert.equal(2, cache.tail.key)
   })
 })
+
+describe('get', function () {
+  it('should be a re-ordering operation', function () {
+    var cache = new Cache(2)
+    cache.insert('a', 'b')
+    cache.insert('c', 'd')
+    cache.get('a')
+    cache.insert('e', 'f')
+    assert.equal(2, cache.count)
+    assert.equal(null, cache.get('c'))
+  })
+})
